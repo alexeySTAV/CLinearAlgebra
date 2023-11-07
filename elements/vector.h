@@ -6,16 +6,17 @@
 
 namespace linal
 {
+    template<typename T>
     class vector
     {
         public:
             vector(size_t d): 
                 dim(d) {}
-            vector(std::initializer_list<double> values): 
+            vector(std::initializer_list<T> values): 
                 dim(values.size())
                 {
                     int i = 0;
-                    for(double value : values)
+                    for(T value : values)
                     {    
                         coord[i] = value;
                         i++;
@@ -26,14 +27,14 @@ namespace linal
                 delete[] coord;
             }
 
-            double norm2() const
+            T norm2() const
             {
-                double res = 0;
+                T res = 0;
                 for(int i = 0; i < dim; i++)
                     res += coord[i] * coord[i];
                 return res;
             }
-            double norm() const
+            T norm() const
             {
                 return std::sqrt(this->norm2());
             }
@@ -41,11 +42,11 @@ namespace linal
             {
                 return dim;
             }
-            double* begin()
+            T* begin()
             {
                 return coord;
             }
-            double* end()
+            T* end()
             {
                 return coord + dim;
             }
@@ -68,7 +69,7 @@ namespace linal
                     b[i] = coord[i] - other[i];
                 return b;
             }
-            inline vector operator=(const std::initializer_list<double> other)
+            inline vector operator=(const std::initializer_list<T> other)
             {
                 if (other.size() != dim)
                     throw std::invalid_argument("Array length does not match vector dimension");
@@ -76,7 +77,7 @@ namespace linal
                     coord[i] = other.begin()[i];
                 return *this;
             }
-            inline vector operator=(std::vector<double> other)
+            inline vector operator=(std::vector<T> other)
             {
                 if (other.size() != dim)
                     throw std::invalid_argument("Array length does not match vector dimension");
@@ -126,13 +127,17 @@ namespace linal
             }
             inline vector operator/=(const double& scalar)
             {
-                for(int i = 0; i < dim; i++)
-                    coord[i] /= scalar;
-                return *this;
+                //for(int i = 0; i < dim; i++)
+                  //  coord[i] /= scalar;
+                return *this / scalar;
             }
-            inline vector operator*=(const auto& other)
+            inline vector operator*=(const vector& other)
             {
                 return *this * other;
+            }
+            inline vector operator*=(const T& scalar)
+            {
+                return *this * scalar;
             }
             inline vector operator+=(const vector& other)
             {
@@ -142,22 +147,22 @@ namespace linal
             {
                 return *this - other;
             }
-            inline double operator^(const vector& other) const
+            inline T operator^(const vector& other) const
             {
                 if(dim != other.size())
                     throw std::invalid_argument("Dimensions do not match");
-                double res = 0;
+                T res = 0;
                 for(int i = 0; i < dim; i++)
                     res += coord[i] * other[i];
                 return res;
             }
-            inline double& operator[](size_t index)
+            inline T& operator[](size_t index)
             {
                 if(index >= dim || index < 0)
                     throw std::out_of_range("Index out of range");
                 return coord[index];
             }
-            inline const double operator[](size_t index) const
+            inline const T operator[](size_t index) const
             {
                 if(index >= dim || index < 0)
                     throw std::out_of_range("Index out of range");
@@ -166,6 +171,6 @@ namespace linal
             
         private:
             size_t dim;
-            double* coord = new double[dim];
+            T* coord = new T[dim];
 };
 }
