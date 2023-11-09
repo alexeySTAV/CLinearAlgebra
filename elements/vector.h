@@ -11,20 +11,20 @@ namespace linal
     {
         public:
             vector(size_t d): 
-                dim(d) {}
+                dim(d), coord(new T[d]) 
+                {
+                    for(int i = 0; i < d; i++)
+                        coord[i] = T();
+                }
             vector(std::initializer_list<T> values): 
                 dim(values.size())
                 {
-                    int i = 0;
-                    for(T value : values)
-                    {    
-                        coord[i] = value;
-                        i++;
-                    }
+                    std::copy(values.begin(), values.end(), coord);
                 }
             ~vector()
             {
-                delete[] coord;
+                if(coord)
+                    delete[] coord;
             }
 
             T norm2() const
@@ -113,22 +113,24 @@ namespace linal
                 b[2] = coord[0] * other[1] - coord[1] * other[0];
                 return b;
             }
-            inline vector operator*(const double& scalar)
+            inline vector operator*(const double& scalar) const
             {
+                vector res(dim);
                 for(int i = 0; i < dim; i++)
-                    coord[i] *= scalar;
-                return *this;
+                    res[i] = coord[i] * scalar;
+                return res;
             }
-            inline vector operator/(const double& scalar)
+            inline vector operator/(const double& scalar) const
             {
+                vector res(dim);
                 for(int i = 0; i < dim; i++)
-                    coord[i] /= scalar;
-                return *this;
+                    res[i] = coord[i] / scalar;
+                return res;
             }
             inline vector operator/=(const double& scalar)
             {
-                //for(int i = 0; i < dim; i++)
-                  //  coord[i] /= scalar;
+                for(int i = 0; i < dim; i++)
+                    coord[i] /= scalar;
                 return *this / scalar;
             }
             inline vector operator*=(const vector& other)
