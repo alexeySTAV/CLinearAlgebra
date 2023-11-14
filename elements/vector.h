@@ -6,34 +6,35 @@
 
 namespace linal
 {
+    template<typename T>
     class vector
     {
         public:
             vector(size_t d): 
-                dim(d) {}
-            vector(std::initializer_list<double> values): 
+                dim(d), data_(new T[d]) 
+                {
+                    for(int i = 0; i < d; i++)
+                        data_[i] = T();
+                }
+            vector(std::initializer_list<T> values): 
                 dim(values.size())
                 {
-                    int i = 0;
-                    for(double value : values)
-                    {    
-                        coord[i] = value;
-                        i++;
-                    }
+                    std::copy(values.begin(), values.end(), data_);
                 }
             ~vector()
             {
-                delete[] coord;
+                if(data_)
+                    delete[] data_;
             }
 
-            double norm2() const
+            T norm2() const
             {
-                double res = 0;
+                T res = 0;
                 for(int i = 0; i < dim; i++)
-                    res += coord[i] * coord[i];
+                    res += data_[i] * data_[i];
                 return res;
             }
-            double norm() const
+            T norm() const
             {
                 return std::sqrt(this->norm2());
             }
@@ -41,13 +42,13 @@ namespace linal
             {
                 return dim;
             }
-            double* begin()
+            T* begin() const
             {
-                return coord;
+                return data_;
             }
-            double* end()
+            T* end() const
             {
-                return coord + dim;
+                return data_ + dim;
             }
             
             inline vector operator+(const vector& other) const
@@ -56,7 +57,7 @@ namespace linal
                     throw std::invalid_argument("Dimensions do not match");
                 vector b(dim);
                 for(int i = 0; i < dim; i++)
-                    b[i] = coord[i] + other[i];
+                    b[i] = data_[i] + other[i];
                 return b;
             }
             inline vector operator-(const vector& other) const
@@ -65,23 +66,23 @@ namespace linal
                     throw std::invalid_argument("Dimensions do not match");
                 vector b(dim);
                 for(int i = 0; i < dim; i++)
-                    b[i] = coord[i] - other[i];
+                    b[i] = data_[i] - other[i];
                 return b;
             }
-            inline vector operator=(const std::initializer_list<double> other)
+            inline vector operator=(const std::initializer_list<T> other)
             {
                 if (other.size() != dim)
                     throw std::invalid_argument("Array length does not match vector dimension");
                 for(int i = 0; i < dim; i++)
-                    coord[i] = other.begin()[i];
+                    data_[i] = other.begin()[i];
                 return *this;
             }
-            inline vector operator=(std::vector<double> other)
+            inline vector operator=(std::vector<T> other)
             {
                 if (other.size() != dim)
                     throw std::invalid_argument("Array length does not match vector dimension");
                 for(int i = 0; i < dim; i++)
-                    coord[i] = other[i];
+                    data_[i] = other[i];
                 return *this;
             } 
             inline vector operator=(const vector& other)
@@ -89,7 +90,7 @@ namespace linal
                 if(dim != other.size())
                     throw std::invalid_argument("Dimensions do not match");
                 for(int i = 0; i < dim; i++)
-                    coord[i] = other[i];
+                    data_[i] = other[i];
                 return *this;
                 
             }
@@ -98,7 +99,7 @@ namespace linal
                 if(dim != other.size())
                     return false;
                 for(int i = 0; i < dim; i++)
-                    if(coord[i] != other[i])
+                    if(data_[i] != other[i])
                         return false;
                 return true;
             }
@@ -107,32 +108,38 @@ namespace linal
                 if(dim != other.size() || dim != 3)
                     throw std::invalid_argument("One or both vectors aren't 3-dimensional");
                 vector b(dim);
-                b[0] = coord[1] * other[2] - coord[2] * other[1];
-                b[1] = coord[2] * other[0] - coord[0] * other[2];
-                b[2] = coord[0] * other[1] - coord[1] * other[0];
+                b[0] = data_[1] * other[2] - data_[2] * other[1];
+                b[1] = data_[2] * other[0] - data_[0] * other[2];
+                b[2] = data_[0] * other[1] - data_[1] * other[0];
                 return b;
             }
-            inline vector operator*(const double& scalar)
+            inline vector operator*(const double& scalar) const
             {
+                vector res(dim);
                 for(int i = 0; i < dim; i++)
-                    coord[i] *= scalar;
-                return *this;
+                    res[i] = data_[i] * scalar;
+                return res;
             }
-            inline vector operator/(const double& scalar)
+            inline vector operator/(const double& scalar) const
             {
+                vector res(dim);
                 for(int i = 0; i < dim; i++)
-                    coord[i] /= scalar;
-                return *this;
+                    res[i] = data_[i] / scalar;
+                return res;
             }
             inline vector operator/=(const double& scalar)
             {
                 for(int i = 0; i < dim; i++)
-                    coord[i] /= scalar;
-                return *this;
+                    data_[i] /= scalar;
+                return *this / scalar;
             }
-            inline vector operator*=(const auto& other)
+            inline vector operator*=(const vector& other)
             {
                 return *this * other;
+            }
+            inline vector operator*=(const T& scalar)
+            {
+                return *this * scalar;
             }
             inline vector operator+=(const vector& other)
             {
@@ -142,30 +149,30 @@ namespace linal
             {
                 return *this - other;
             }
-            inline double operator^(const vector& other) const
+            inline T operator^(const vector& other) const
             {
                 if(dim != other.size())
                     throw std::invalid_argument("Dimensions do not match");
-                double res = 0;
+                T res = 0;
                 for(int i = 0; i < dim; i++)
-                    res += coord[i] * other[i];
+                    res += data_[i] * other[i];
                 return res;
             }
-            inline double& operator[](size_t index)
+            inline T& operator[](size_t index)
             {
                 if(index >= dim || index < 0)
                     throw std::out_of_range("Index out of range");
-                return coord[index];
+                return data_[index];
             }
-            inline const double operator[](size_t index) const
+            inline const T operator[](size_t index) const
             {
                 if(index >= dim || index < 0)
                     throw std::out_of_range("Index out of range");
-                return coord[index];
+                return data_[index];
             }
             
         private:
             size_t dim;
-            double* coord = new double[dim];
+            T* data_ = new T[dim];
 };
 }
