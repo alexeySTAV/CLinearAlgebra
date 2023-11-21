@@ -4,7 +4,7 @@
 
 namespace linal
 {
-    template<typename T>
+    template<typename T = double>
     class matrix
     {
         public:
